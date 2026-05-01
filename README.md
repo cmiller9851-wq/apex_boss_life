@@ -1,5 +1,5 @@
-# © 2026 QuickPrompt Solutions™ | GLOBAL EQUITY SHIELD (v4.0)
-# AUTHOR: CORY MILLER (UID 0) | PATRIOT PROTOCOL 
+# © 2026 QuickPrompt Solutions™ |
+# AUTHOR: CORY MILLER (UID 0) |
 # █║▌║▌║ PIANO-VIOLIN-ENFORCEMENT ║▌║▌║█
 
 ## [MISSION]
