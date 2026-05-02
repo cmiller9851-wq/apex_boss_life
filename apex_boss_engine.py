@@ -1,30 +1,46 @@
 import hashlib
-import ctypes
+import logging
+from dataclasses import dataclass
+from typing import Dict
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+logger = logging.getLogger('apex_boss_life')
+
+@dataclass(frozen=True)
+class StateRecord:
+    source: str
+    payload_hash: str
+    version: int
 
 class ApexBossEngine:
-    """Production-grade Apex controller for sovereign digital state control."""
+    """Production-grade state controller for apex_boss_life."""
     def __init__(self, node_id: str, baseline_hash: str):
         self.node_id = node_id
         self._baseline = baseline_hash
-        self._state_locked = False
+        self._records: Dict[str, StateRecord] = {}
+        self._locked = False
 
-    def enforce_state(self, incoming_state: str):
-        """Validates incoming state against immutable baseline."""
-        # Integrity check: The system flip line
-        if hashlib.sha256(incoming_state.encode()).hexdigest() != self._baseline:
-            self._trigger_sovereign_flip()
+    def ingest_state(self, source: str, payload: str, version: int) -> str:
+        if self._locked:
+            raise RuntimeError('engine locked')
+        payload_hash = hashlib.sha256(payload.encode()).hexdigest()
+        if payload_hash != self._baseline:
+            self._locked = True
+            logger.critical('integrity violation on %s', self.node_id)
+            raise ValueError('baseline mismatch')
+        rec = StateRecord(source=source, payload_hash=payload_hash, version=version)
+        tx_id = hashlib.sha256(f'{source}:{payload_hash}:{version}'.encode()).hexdigest()
+        self._records[tx_id] = rec
+        logger.info('accepted state %s', tx_id)
+        return tx_id
 
-    def _trigger_sovereign_flip(self):
-        """Hard flip: initiates immediate, immutable hardware-level termination."""
-        self._state_locked = True
-        # Hardware trap (SIGSEGV) for forensic integrity capture
-        ctypes.string_at(0, 1)
+    def status(self) -> dict:
+        return {
+            'node_id': self.node_id,
+            'locked': self._locked,
+            'records': len(self._records)
+        }
 
-if __name__ == "__main__":
-    # Apex Boss: Entry point for sovereign state enforcement
-    try:
-        engine = ApexBossEngine("APEX_ROOT", "B45F...")
-        engine.enforce_state("INCOMING_SYSTEM_STATE_DATA")
-    except Exception:
-        # Final safety trap on catastrophic state violation
-        ctypes.string_at(0, 1)
+if __name__ == '__main__':
+    engine = ApexBossEngine('APEX_ROOT', 'B45F...')
+    print(engine.status())
